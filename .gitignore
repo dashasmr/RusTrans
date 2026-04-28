@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.spec
+
+# Virtual env
+.venv/
+venv/
+env/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Project-specific
+tmp/
+*.wav
+*.avi
+*.mkv
+*.mov
+*.mp4
+*.webm
+*.flac
+
+# Test data
+*_en.srt
+*_ru.srt
+*_fi.srt
+test.*.srt
+season1/
+data/
