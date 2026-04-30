@@ -69,8 +69,29 @@ def extract_audio_to_wav(input_video_path: Path, output_wav_path: Path) -> None:
     )
 
     if result.returncode != 0:
-        raise RuntimeError(
-            "Ошибка ffmpeg при извлечении аудио.\n"
-            f"STDOUT:\n{result.stdout}\n\n"
-            f"STDERR:\n{result.stderr}"
-        )
+        # Extract a readable error message from ffmpeg output
+        error_lines = []
+        stderr_lower = result.stderr.lower()
+        
+        if "no such file" in stderr_lower or "cannot open" in stderr_lower:
+            error_lines.append(f"Input file not found or cannot be read: {input_video_path.name}")
+        elif "permission denied" in stderr_lower:
+            error_lines.append("Permission denied. Check file access rights.")
+        elif "invalid data found" in stderr_lower or "invalid data" in stderr_lower:
+            error_lines.append(f"File format not supported or file is corrupted: {input_video_path.name}")
+        elif "output file" in stderr_lower and "already exists" in stderr_lower:
+            error_lines.append("Output file already exists and cannot be overwritten.")
+        else:
+            # Include first few lines of stderr for other errors
+            stderr_lines = result.stderr.strip().split("\n")
+            for line in stderr_lines[:5]:
+                if line.strip():
+                    error_lines.append(line.strip())
+        
+        error_msg = "ffmpeg error while extracting audio:\n"
+        if error_lines:
+            error_msg += "\n".join(f"  - {line}" for line in error_lines)
+        else:
+            error_msg += f"  Return code: {result.returncode}"
+        
+        raise RuntimeError(error_msg)

@@ -1,45 +1,55 @@
 # Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
+*.py[cod]
+*$py.class
 *.egg-info/
 dist/
 build/
-*.spec
 
-# Virtual env
+# Virtual environment
 .venv/
 venv/
 env/
 ENV/
+.env/
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Project-specific
+# Project-specific - temporary processing files
 tmp/
 *.wav
-*.avi
-*.mkv
-*.mov
-*.mp4
-*.webm
-*.flac
 
-# Test data
-*_en.srt
-*_ru.srt
-*_fi.srt
-test.*.srt
+# Test data (local test files)
+test.en.srt
+test.ru.srt
+test_run.py
+test_folder_run.py
 season1/
+
+# Local assets
+assets/
+
+# Runtime-generated data (idiom_candidates.json is created during processing)
 data/
+
+# Data folder (runtime-generated files like idiom_candidates.json)
+# Uncomment if you want to exclude data/ entirely:
+# data/
+
+# PyInstaller spec (optional - keep if you want reproducible builds)
+# *.spec
+
+# Exclude specific exe files in build/dist
+*.exe
+!/build/FinSubs/FinSubs.exe
+!/dist/FinSubs/FinSubs.exe

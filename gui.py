@@ -1,6 +1,14 @@
+"""
+RusTrans desktop application.
+
+This module contains only the GUI layer.
+All subtitle processing logic is delegated to the app.pipeline module.
+"""
+
 from __future__ import annotations
 
 import os
+import sys
 import threading
 from pathlib import Path
 import tkinter.messagebox as messagebox
@@ -20,191 +28,268 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
 
+LANGUAGE_LABELS = {
+    "Finnish": "fi",
+    "English": "en",
+}
+
+MODE_LABELS = {
+    "Auto": "auto",
+    "Video → subtitles": "video",
+    "Russian SRT → subtitles": "srt",
+}
+
+
 class RusTransApp:
+    """
+    Main desktop application window for RusTrans.
+
+    The UI allows users to select a video, SRT file, or a season folder,
+    then generate translated subtitles in Finnish or English.
+    """
+
     def __init__(self, root: ctk.CTk) -> None:
+        """
+        Initialize application state and build the UI.
+        """
         self.root = root
         self.root.title("RusTrans")
-        self.root.geometry("860x620")
-        self.root.minsize(760, 560)
+        self.root.geometry("940x660")
+        self.root.minsize(820, 600)
 
         self.selected_path: Path | None = None
 
         self.path_var = ctk.StringVar()
-        self.mode_var = ctk.StringVar(value="auto")
-        self.lang_var = ctk.StringVar(value="fi")
+        self.mode_var = ctk.StringVar(value="Auto")
+        self.lang_var = ctk.StringVar(value="Finnish")
         self.status_var = ctk.StringVar(value="Ready")
 
         self._build_ui()
 
     def _build_ui(self) -> None:
+        """
+        Build all UI components.
+        """
         self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_rowconfigure(0, weight=1)
 
-        main_frame = ctk.CTkFrame(self.root, corner_radius=16)
-        main_frame.grid(row=0, column=0, sticky="nsew", padx=16, pady=16)
-        main_frame.grid_columnconfigure(0, weight=1)
-        main_frame.grid_rowconfigure(5, weight=1)
+        main = ctk.CTkFrame(self.root, corner_radius=22)
+        main.grid(row=0, column=0, sticky="nsew", padx=18, pady=18)
+        main.grid_columnconfigure(0, weight=1)
+        main.grid_rowconfigure(5, weight=1)
 
-        title_label = ctk.CTkLabel(
-            main_frame,
+        header = ctk.CTkFrame(main, fg_color="transparent")
+        header.grid(row=0, column=0, sticky="ew", padx=22, pady=(22, 12))
+        header.grid_columnconfigure(0, weight=1)
+
+        title = ctk.CTkLabel(
+            header,
             text="RusTrans",
-            font=ctk.CTkFont(size=26, weight="bold"),
+            font=ctk.CTkFont(size=34, weight="bold"),
         )
-        title_label.grid(row=0, column=0, sticky="w", padx=16, pady=(16, 4))
+        title.grid(row=0, column=0, sticky="w")
 
-        subtitle_label = ctk.CTkLabel(
-            main_frame,
-            text="Offline subtitle generator for Finnish and English",
-            font=ctk.CTkFont(size=14),
+        subtitle = ctk.CTkLabel(
+            header,
+            text="Offline Russian subtitle generator and translator",
+            font=ctk.CTkFont(size=15),
+            text_color="#AAB2C0",
         )
-        subtitle_label.grid(row=1, column=0, sticky="w", padx=16, pady=(0, 12))
+        subtitle.grid(row=1, column=0, sticky="w", pady=(4, 0))
 
-        path_frame = ctk.CTkFrame(main_frame, corner_radius=12)
-        path_frame.grid(row=2, column=0, sticky="ew", padx=16, pady=(0, 12))
-        path_frame.grid_columnconfigure(0, weight=1)
+        self.status_badge = ctk.CTkLabel(
+            header,
+            textvariable=self.status_var,
+            font=ctk.CTkFont(size=14, weight="bold"),
+            corner_radius=18,
+            fg_color="#1F6AA5",
+            text_color="white",
+            width=120,
+            height=34,
+        )
+        self.status_badge.grid(row=0, column=1, rowspan=2, sticky="e")
+
+        input_card = ctk.CTkFrame(main, corner_radius=18)
+        input_card.grid(row=1, column=0, sticky="ew", padx=22, pady=(0, 14))
+        input_card.grid_columnconfigure(0, weight=1)
+
+        input_title = ctk.CTkLabel(
+            input_card,
+            text="Input",
+            font=ctk.CTkFont(size=18, weight="bold"),
+        )
+        input_title.grid(row=0, column=0, columnspan=3, sticky="w", padx=16, pady=(14, 6))
 
         self.path_entry = ctk.CTkEntry(
-            path_frame,
+            input_card,
             textvariable=self.path_var,
-            height=38,
-            placeholder_text="Select a video or Russian SRT file...",
+            height=42,
+            placeholder_text="Choose a video, Russian SRT, or a season folder...",
         )
-        self.path_entry.grid(row=0, column=0, sticky="ew", padx=(12, 8), pady=12)
+        self.path_entry.grid(row=1, column=0, sticky="ew", padx=(16, 8), pady=(0, 16))
 
-        browse_button = ctk.CTkButton(
-            path_frame,
+        file_button = ctk.CTkButton(
+            input_card,
             text="Browse file",
             command=self.select_file,
-            width=110,
-            height=38,
+            width=120,
+            height=42,
         )
-        browse_button.grid(row=0, column=1, padx=(0, 8), pady=12)
+        file_button.grid(row=1, column=1, padx=(0, 8), pady=(0, 16))
 
-        browse_folder_button = ctk.CTkButton(
-            path_frame,
+        folder_button = ctk.CTkButton(
+            input_card,
             text="Browse folder",
             command=self.select_folder,
-            width=120,
-            height=38,
+            width=130,
+            height=42,
         )
-        browse_folder_button.grid(row=0, column=2, padx=(0, 12), pady=12)
+        folder_button.grid(row=1, column=2, padx=(0, 16), pady=(0, 16))
 
-        options_frame = ctk.CTkFrame(main_frame, corner_radius=12)
-        options_frame.grid(row=3, column=0, sticky="ew", padx=16, pady=(0, 12))
-        options_frame.grid_columnconfigure((0, 1), weight=1)
+        options = ctk.CTkFrame(main, corner_radius=18)
+        options.grid(row=2, column=0, sticky="ew", padx=22, pady=(0, 14))
+        options.grid_columnconfigure((0, 1, 2), weight=1)
 
-        mode_frame = ctk.CTkFrame(options_frame, corner_radius=12)
-        mode_frame.grid(row=0, column=0, sticky="nsew", padx=(12, 6), pady=12)
+        mode_card = ctk.CTkFrame(options, corner_radius=16)
+        mode_card.grid(row=0, column=0, sticky="nsew", padx=(14, 7), pady=14)
 
         mode_title = ctk.CTkLabel(
-            mode_frame,
+            mode_card,
             text="Mode",
-            font=ctk.CTkFont(size=16, weight="bold"),
+            font=ctk.CTkFont(size=17, weight="bold"),
         )
-        mode_title.pack(anchor="w", padx=12, pady=(12, 8))
+        mode_title.pack(anchor="w", padx=14, pady=(14, 8))
 
-        ctk.CTkRadioButton(
-            mode_frame,
-            text="Auto",
+        self.mode_menu = ctk.CTkOptionMenu(
+            mode_card,
+            values=list(MODE_LABELS.keys()),
             variable=self.mode_var,
-            value="auto",
-        ).pack(anchor="w", padx=12, pady=4)
+            width=210,
+            height=36,
+        )
+        self.mode_menu.pack(anchor="w", padx=14, pady=(0, 14))
 
-        ctk.CTkRadioButton(
-            mode_frame,
-            text="Video → RU SRT → target SRT",
-            variable=self.mode_var,
-            value="video",
-        ).pack(anchor="w", padx=12, pady=4)
-
-        ctk.CTkRadioButton(
-            mode_frame,
-            text="RU SRT → target SRT",
-            variable=self.mode_var,
-            value="srt",
-        ).pack(anchor="w", padx=12, pady=(4, 12))
-
-        lang_frame = ctk.CTkFrame(options_frame, corner_radius=12)
-        lang_frame.grid(row=0, column=1, sticky="nsew", padx=(6, 12), pady=12)
+        lang_card = ctk.CTkFrame(options, corner_radius=16)
+        lang_card.grid(row=0, column=1, sticky="nsew", padx=7, pady=14)
 
         lang_title = ctk.CTkLabel(
-            lang_frame,
+            lang_card,
             text="Target language",
-            font=ctk.CTkFont(size=16, weight="bold"),
+            font=ctk.CTkFont(size=17, weight="bold"),
         )
-        lang_title.pack(anchor="w", padx=12, pady=(12, 8))
+        lang_title.pack(anchor="w", padx=14, pady=(14, 8))
 
         self.lang_menu = ctk.CTkOptionMenu(
-            lang_frame,
-            values=["fi", "en"],
+            lang_card,
+            values=list(LANGUAGE_LABELS.keys()),
             variable=self.lang_var,
-            width=140,
+            width=180,
+            height=36,
         )
-        self.lang_menu.pack(anchor="w", padx=12, pady=(0, 12))
+        self.lang_menu.pack(anchor="w", padx=14, pady=(0, 14))
 
-        button_frame = ctk.CTkFrame(main_frame, corner_radius=12)
-        button_frame.grid(row=4, column=0, sticky="ew", padx=16, pady=(0, 12))
-        button_frame.grid_columnconfigure(4, weight=1)
+        info_card = ctk.CTkFrame(options, corner_radius=16)
+        info_card.grid(row=0, column=2, sticky="nsew", padx=(7, 14), pady=14)
+
+        info_title = ctk.CTkLabel(
+            info_card,
+            text="Output",
+            font=ctk.CTkFont(size=17, weight="bold"),
+        )
+        info_title.pack(anchor="w", padx=14, pady=(14, 8))
+
+        info_text = ctk.CTkLabel(
+            info_card,
+            text="Creates .ru.srt and .fi/.en.srt next to the source file.",
+            wraplength=240,
+            justify="left",
+            text_color="#AAB2C0",
+        )
+        info_text.pack(anchor="w", padx=14, pady=(0, 14))
+
+        actions = ctk.CTkFrame(main, corner_radius=18)
+        actions.grid(row=3, column=0, sticky="ew", padx=22, pady=(0, 14))
+        actions.grid_columnconfigure(5, weight=1)
 
         self.start_button = ctk.CTkButton(
-            button_frame,
+            actions,
             text="Start",
             command=self.start_processing,
-            width=120,
-            height=40,
+            width=130,
+            height=44,
+            font=ctk.CTkFont(size=15, weight="bold"),
         )
-        self.start_button.grid(row=0, column=0, padx=(12, 8), pady=12)
+        self.start_button.grid(row=0, column=0, padx=(14, 8), pady=14)
 
         clear_button = ctk.CTkButton(
-            button_frame,
+            actions,
             text="Clear log",
             command=self.clear_log,
             width=120,
-            height=40,
+            height=44,
+            fg_color="#3B3F4A",
+            hover_color="#4A4F5C",
         )
-        clear_button.grid(row=0, column=1, padx=8, pady=12)
+        clear_button.grid(row=0, column=1, padx=8, pady=14)
 
-        open_output_btn = ctk.CTkButton(
-            button_frame,
+        output_button = ctk.CTkButton(
+            actions,
             text="Open output",
             command=self.open_output_folder,
             width=130,
-            height=40,
+            height=44,
+            fg_color="#3B3F4A",
+            hover_color="#4A4F5C",
         )
-        open_output_btn.grid(row=0, column=2, padx=8, pady=12)
+        output_button.grid(row=0, column=2, padx=8, pady=14)
 
-        open_candidates_btn = ctk.CTkButton(
-            button_frame,
+        candidates_button = ctk.CTkButton(
+            actions,
             text="Open candidates",
             command=self.open_candidates_file,
             width=150,
-            height=40,
+            height=44,
+            fg_color="#3B3F4A",
+            hover_color="#4A4F5C",
         )
-        open_candidates_btn.grid(row=0, column=3, padx=8, pady=12)
+        candidates_button.grid(row=0, column=3, padx=8, pady=14)
 
-        self.status_label = ctk.CTkLabel(
-            button_frame,
-            textvariable=self.status_var,
-            font=ctk.CTkFont(size=13, weight="bold"),
+        kodi_note = ctk.CTkLabel(
+            actions,
+            text="Kodi tip: keep video and .srt in the same folder",
+            text_color="#AAB2C0",
         )
-        self.status_label.grid(row=0, column=4, sticky="e", padx=(8, 12), pady=12)
+        kodi_note.grid(row=0, column=5, sticky="e", padx=(8, 14), pady=14)
 
-        log_frame = ctk.CTkFrame(main_frame, corner_radius=12)
-        log_frame.grid(row=5, column=0, sticky="nsew", padx=16, pady=(0, 16))
-        log_frame.grid_columnconfigure(0, weight=1)
-        log_frame.grid_rowconfigure(1, weight=1)
+        log_card = ctk.CTkFrame(main, corner_radius=18)
+        log_card.grid(row=5, column=0, sticky="nsew", padx=22, pady=(0, 22))
+        log_card.grid_columnconfigure(0, weight=1)
+        log_card.grid_rowconfigure(1, weight=1)
 
         log_title = ctk.CTkLabel(
-            log_frame,
+            log_card,
             text="Log",
-            font=ctk.CTkFont(size=16, weight="bold"),
+            font=ctk.CTkFont(size=18, weight="bold"),
         )
-        log_title.grid(row=0, column=0, sticky="w", padx=12, pady=(12, 8))
+        log_title.grid(row=0, column=0, sticky="w", padx=16, pady=(14, 8))
 
-        self.log_text = ctk.CTkTextbox(log_frame, corner_radius=10)
-        self.log_text.grid(row=1, column=0, sticky="nsew", padx=12, pady=(0, 12))
+        self.log_text = ctk.CTkTextbox(
+            log_card,
+            corner_radius=14,
+            font=ctk.CTkFont(size=13),
+        )
+        self.log_text.grid(row=1, column=0, sticky="nsew", padx=16, pady=(0, 16))
+
+        self.log("RusTrans is ready.")
 
     def select_file(self) -> None:
+        """
+        Open a file picker and store the selected input file.
+
+        Supported inputs:
+        - video files
+        - Russian SRT subtitle files
+        """
         file_path = filedialog.askopenfilename(
             title="Select video or Russian SRT",
             filetypes=[
@@ -218,12 +303,15 @@ class RusTransApp:
 
         self.selected_path = Path(file_path)
         self.path_var.set(str(self.selected_path))
-        self.log(f"Selected: {self.selected_path}")
+        self.log(f"Selected file: {self.selected_path}")
 
     def select_folder(self) -> None:
-        folder_path = filedialog.askdirectory(
-            title="Select season folder",
-        )
+        """
+        Open a folder picker and store the selected season folder.
+
+        Folder mode is used for batch processing multiple video files.
+        """
+        folder_path = filedialog.askdirectory(title="Select season folder")
 
         if not folder_path:
             return
@@ -233,41 +321,85 @@ class RusTransApp:
         self.log(f"Selected folder: {self.selected_path}")
 
     def clear_log(self) -> None:
+        """
+        Clear all messages from the log panel.
+        """
         self.log_text.delete("1.0", "end")
 
-    def log(self, message: str) -> None:
-        self.log_text.insert("end", message + "\n")
+    def log(self, message: str, level: str = "INFO") -> None:
+        """
+        Append a log message to the UI log panel.
+
+        Args:
+            message: Message to display.
+            level: Log level label, for example INFO, WARNING, ERROR.
+        """
+        self.log_text.insert("end", f"[{level}] {message}\n")
         self.log_text.see("end")
         self.root.update_idletasks()
 
+    def set_status(self, status: str) -> None:
+        """
+        Update the status badge text and color.
+        """
+        self.status_var.set(status)
+
+        if status == "Ready":
+            self.status_badge.configure(fg_color="#1F6AA5")
+        elif status == "Processing":
+            self.status_badge.configure(fg_color="#C77D00")
+        elif status == "Done":
+            self.status_badge.configure(fg_color="#2D8A4E")
+        elif status == "Error":
+            self.status_badge.configure(fg_color="#B83232")
+
     def open_output_folder(self) -> None:
+        """
+        Open the folder where generated subtitle files are stored.
+        """
         if not self.selected_path:
+            self.log("No file or folder selected.", level="WARNING")
             return
 
-        folder = self.selected_path.parent
+        folder = self.selected_path if self.selected_path.is_dir() else self.selected_path.parent
 
         try:
             os.startfile(folder)
-        except Exception as e:
-            self.log(f"Cannot open folder: {e}")
+        except Exception as error:
+            self.log(f"Cannot open output folder: {error}", level="ERROR")
 
     def open_candidates_file(self) -> None:
-        path = Path("data/idiom_candidates.json")
+        """
+        Open the JSON file containing suspicious translation candidates.
+        """
+        # Use same path resolution as suspicious_detector
+        if getattr(sys, 'frozen', False):
+            base_dir = Path(sys._MEIPASS)
+        else:
+            base_dir = Path(__file__).parent
+        
+        path = base_dir / "data" / "idiom_candidates.json"
 
         if not path.exists():
-            self.log("Candidates file not found yet.")
+            self.log("Candidates file not found yet.", level="WARNING")
             return
 
         try:
             os.startfile(path)
-        except Exception as e:
-            self.log(f"Cannot open candidates file: {e}")
+        except Exception as error:
+            self.log(f"Cannot open candidates file: {error}", level="ERROR")
 
     def start_processing(self) -> None:
+        """
+        Validate input and start processing in a background thread.
+
+        A worker thread is used to keep the GUI responsive while
+        transcription and translation are running.
+        """
         path_text = self.path_var.get().strip()
 
         if not path_text:
-            messagebox.showerror("Error", "Please select a file first.")
+            messagebox.showerror("Error", "Please select a file or folder first.")
             return
 
         input_path = Path(path_text)
@@ -277,8 +409,9 @@ class RusTransApp:
             return
 
         self.start_button.configure(state="disabled")
-        self.status_var.set("Processing...")
-        self.log("Starting...")
+        self.set_status("Processing")
+        self.log("")
+        self.log("Starting processing...")
 
         worker = threading.Thread(
             target=self._run_processing,
@@ -288,56 +421,77 @@ class RusTransApp:
         worker.start()
 
     def _run_processing(self, input_path: Path) -> None:
+        """
+        Run selected processing pipeline.
+
+        The method supports:
+        - single video file
+        - single Russian SRT file
+        - season folder with multiple video files
+        """
         try:
-            mode = self.mode_var.get()
-            target_lang = self.lang_var.get()
+            target_lang = LANGUAGE_LABELS[self.lang_var.get()]
+            mode = MODE_LABELS[self.mode_var.get()]
 
             self.log(f"Target language: {target_lang}")
+            self.log(f"Processing mode: {mode}")
 
             if input_path.is_dir():
-                self.log("Folder mode: processing season folder")
+                self.log("Season folder mode enabled.")
                 process_video_folder(input_path, target_lang=target_lang)
 
-            else:
-                if mode == "auto":
-                    if input_path.suffix.lower() == ".srt":
-                        self._process_srt(input_path, target_lang)
-                    else:
-                        self._process_video(input_path, target_lang)
-
-                elif mode == "srt":
+            elif mode == "auto":
+                if input_path.suffix.lower() == ".srt":
                     self._process_srt(input_path, target_lang)
-
-                elif mode == "video":
+                else:
                     self._process_video(input_path, target_lang)
 
-            self.log("Done.")
-            self.status_var.set("Done")
+            elif mode == "srt":
+                self._process_srt(input_path, target_lang)
+
+            elif mode == "video":
+                self._process_video(input_path, target_lang)
+
+            self.log("Processing completed successfully.")
+            self.set_status("Done")
             messagebox.showinfo("Success", "Processing completed.")
 
         except Exception as error:
-            self.log(f"Error: {error}")
-            self.status_var.set("Error")
+            self.log(f"Processing failed: {error}", level="ERROR")
+            self.set_status("Error")
             messagebox.showerror("Error", str(error))
 
         finally:
             self.start_button.configure(state="normal")
 
     def _process_srt(self, input_path: Path, target_lang: str) -> None:
+        """
+        Translate an existing Russian SRT file into the selected target language.
+        """
         output_path = build_output_srt_path(input_path, target_lang)
+
         self.log(f"Input SRT: {input_path}")
-        self.log(f"Output {target_lang.upper()} SRT: {output_path}")
+        self.log(f"Output SRT: {output_path}")
+
         translate_srt(input_path, output_path, target_lang=target_lang)
 
     def _process_video(self, input_path: Path, target_lang: str) -> None:
+        """
+        Generate Russian subtitles from a video and translate them
+        into the selected target language.
+        """
         self.log(f"Input video: {input_path}")
-        self.log(f"Mode: video -> ru.srt -> {target_lang}.srt")
+        self.log(f"Creating subtitles: ru + {target_lang}")
+
         video_to_subs(input_path, target_lang=target_lang)
 
 
 def main() -> None:
+    """
+    Application entry point.
+    """
     root = ctk.CTk()
-    app = RusTransApp(root)
+    RusTransApp(root)
     root.mainloop()
 
 

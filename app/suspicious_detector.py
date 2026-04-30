@@ -1,10 +1,28 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 
-CANDIDATES_FILE = Path("data/idiom_candidates.json")
+def _get_data_dir() -> Path:
+    """
+    Get the data directory path that works both in development and in packaged exe.
+    
+    Returns:
+        Path to the data directory.
+    """
+    if getattr(sys, 'frozen', False):
+        # Running as packaged exe
+        base_dir = Path(sys._MEIPASS)
+    else:
+        # Running in development
+        base_dir = Path(__file__).parent.parent
+    
+    return base_dir / "data"
+
+
+CANDIDATES_FILE = _get_data_dir() / "idiom_candidates.json"
 
 
 def looks_suspicious(source_text: str, translated_text: str, target_lang: str) -> list[str]:

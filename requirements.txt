@@ -1,3 +1,6 @@
+customtkinter
+faster-whisper
+ctranslate2
 srt
 argostranslate
-faster-whisper
+pyinstaller
