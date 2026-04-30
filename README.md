@@ -38,10 +38,10 @@ RusTrans is designed for private, local language-learning workflows.
 
 Example scenarios:
 
-- generating subtitles for personal recordings
-- working with Russian learning materials
-- translating locally stored educational videos
-- using generated subtitles with a local Kodi media setup on Raspberry Pi
+- generating subtitles for personal recordings  
+- working with Russian learning materials  
+- translating locally stored educational videos  
+- using generated subtitles with a local Kodi media setup on Raspberry Pi  
 
 The project does not include or distribute copyrighted media content.
 
@@ -60,19 +60,16 @@ video file
 → Russian SRT
 → translated Finnish / English SRT
 
-### Subtitle input 
 
+
+Subtitle input
 Russian SRT
 → translation
 → Finnish / English SRT
-
-### Folder input
-
+Folder input
 folder with multiple media files
 → batch subtitle generation
-
-### Quality Modes
-
+Quality Modes
 Fast
 
 Uses a smaller speech recognition model for faster processing.
@@ -83,9 +80,10 @@ Uses a medium model with balanced accuracy and speed.
 
 Best
 
-Uses stricter recognition settings for better subtitle quality. This mode is slower but recommended when accuracy is more important than speed.
+Uses stricter recognition settings for better subtitle quality.
+This mode is slower but recommended when accuracy is more important than speed.
 
-### Translation Improvements
+Translation Improvements
 
 RusTrans includes additional text-processing layers to improve subtitle quality:
 
@@ -96,10 +94,10 @@ suspicious phrase detection for future manual improvements
 
 This helps reduce overly literal translations and makes the system easier to improve over time.
 
+Local AI Review
 
-### Local AI Review
-
-The project can be extended with a local AI reviewer using Ollama. This allows translation refinement without using external cloud APIs.
+The project can be extended with a local AI reviewer using Ollama.
+This allows translation refinement without using external cloud APIs.
 
 Kodi / Raspberry Pi Workflow
 
@@ -119,14 +117,10 @@ ffmpeg
 srt
 Ollama support
 PyInstaller
-
-### Installation
-
+Installation
 pip install -r requirements.txt
+
 Make sure ffmpeg is installed and available in PATH.
 
-### Run
-
+Run
 python gui.py
-
-
