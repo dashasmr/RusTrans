@@ -53,23 +53,21 @@ The application supports three main workflows:
 
 ### Video input
 
-```text
 video file
 → audio extraction
 → Russian speech recognition
 → Russian SRT
 → translated Finnish / English SRT
 
-
-
-Subtitle input
+### Subtitle input
 Russian SRT
 → translation
 → Finnish / English SRT
 Folder input
 folder with multiple media files
 → batch subtitle generation
-Quality Modes
+
+### Quality Modes
 Fast
 
 Uses a smaller speech recognition model for faster processing.
@@ -83,7 +81,7 @@ Best
 Uses stricter recognition settings for better subtitle quality.
 This mode is slower but recommended when accuracy is more important than speed.
 
-Translation Improvements
+### Translation Improvements
 
 RusTrans includes additional text-processing layers to improve subtitle quality:
 
@@ -94,12 +92,12 @@ suspicious phrase detection for future manual improvements
 
 This helps reduce overly literal translations and makes the system easier to improve over time.
 
-Local AI Review
+### Local AI Review
 
 The project can be extended with a local AI reviewer using Ollama.
 This allows translation refinement without using external cloud APIs.
 
-Kodi / Raspberry Pi Workflow
+### Kodi / Raspberry Pi Workflow
 
 Generated .srt files can be used with Kodi by placing the subtitle file next to the media file.
 
@@ -108,7 +106,9 @@ This makes the application suitable for a local home media setup using:
 Kodi
 Raspberry Pi
 local network storage
-Tech Stack
+
+
+### Tech Stack
 Python
 CustomTkinter
 faster-whisper
@@ -117,10 +117,12 @@ ffmpeg
 srt
 Ollama support
 PyInstaller
-Installation
+
+
+### Installation
 pip install -r requirements.txt
 
 Make sure ffmpeg is installed and available in PATH.
 
-Run
+### Run
 python gui.py
