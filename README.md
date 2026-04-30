@@ -11,7 +11,7 @@ Offline subtitle generator and translator (RU → FI / EN)
 
 ## Screenshot
 
-![App Screenshot](assets/screenshot.png)
+![RusTrans Screenshot](assets/screenshot.png)
 
 ## Tech Stack
 
