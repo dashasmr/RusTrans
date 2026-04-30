@@ -36,8 +36,6 @@ test_run.py
 test_folder_run.py
 season1/
 
-# Local assets
-assets/
 
 # Runtime-generated data (idiom_candidates.json is created during processing)
 data/
