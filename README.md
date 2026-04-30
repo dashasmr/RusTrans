@@ -1,112 +1,132 @@
 # RusTrans
 
-Offline subtitle generator and translator (Russian → Finnish / English)
+Offline subtitle generator and translator for Russian speech.
+
+RusTrans is a desktop application that generates subtitles from Russian audio/video content and translates them into Finnish or English. The project was built as a practical language-learning and accessibility tool for locally stored personal and educational media.
+
+The application runs locally and does not use paid cloud APIs.
 
 ---
 
-## Overview
+## Features
 
-RusTrans is a desktop application for generating and translating subtitles from locally stored video and audio content.
-
-The tool is designed for working with personal recordings, educational materials, and private media libraries, enabling users to better understand spoken Russian through automatically generated subtitles.
-
-The entire pipeline runs fully offline and does not rely on external APIs or cloud services.
-
----
-
-## Key Features
-
-- Automatic speech-to-text transcription (Russian)
+- Russian speech recognition from video files
 - Translation into Finnish and English
-- Subtitle generation in SRT format
-- Processing of individual files or multiple files in a folder
-- Clean and readable subtitle formatting
-- Fully local execution
+- SRT subtitle generation
+- Support for existing Russian `.srt` files
+- Batch processing for folders with multiple media files
+- Quality presets:
+  - Fast
+  - Balanced
+  - Best
+- Local idiom and glossary layer
+- Suspicious translation candidate detection
+- Desktop GUI built with CustomTkinter
+- Local media workflow compatible with Kodi and Raspberry Pi setups
 
 ---
 
 ## Screenshot
 
-![RusTrans UI](app/assets/screenshot.png)
+![RusTrans Screenshot](assets/screenshot.png)
 
 ---
 
-## Usage
+## Use Case
 
-The application provides a simple workflow:
+RusTrans is designed for private, local language-learning workflows.
 
-1. Select an input source:
-   - video file (e.g. recorded speech, learning material)
-   - subtitle file (Russian SRT)
-   - folder with multiple media files
+Example scenarios:
 
-2. Choose processing mode:
-   - Auto (detect type automatically)
-   - Video → subtitles
-   - Russian SRT → translated subtitles
+- generating subtitles for personal recordings
+- working with Russian learning materials
+- translating locally stored educational videos
+- using generated subtitles with a local Kodi media setup on Raspberry Pi
 
-3. Select target language:
-   - Finnish
-   - English
-
-4. Start processing
-
-The application generates subtitle files in the same directory as the input.
+The project does not include or distribute copyrighted media content.
 
 ---
 
-## System Integration
+## How It Works
 
-RusTrans is designed to work within a local media environment.
+The application supports three main workflows:
 
-Generated subtitles can be used with:
+### Video input
 
-- Kodi media center
-- Raspberry Pi devices
-- local network storage
+```text
+video file
+→ audio extraction
+→ Russian speech recognition
+→ Russian SRT
+→ translated Finnish / English SRT
 
-This allows seamless playback of content with subtitles on external displays (e.g. TV) without requiring internet access.
+### Subtitle input 
 
----
+Russian SRT
+→ translation
+→ Finnish / English SRT
 
-## Technical Details
+### Folder input
 
-- Speech recognition: faster-whisper
-- Translation: Argos Translate (offline)
-- Audio processing: ffmpeg
-- Subtitle handling: srt
-- GUI: CustomTkinter
-- Packaging: PyInstaller
+folder with multiple media files
+→ batch subtitle generation
 
----
+### Quality Modes
 
-## Design Principles
+Fast
 
-- Offline-first architecture
-- Privacy-focused (no data sent externally)
-- Simple and accessible interface
-- Practical real-world usage
+Uses a smaller speech recognition model for faster processing.
 
----
+Balanced
 
-## Input Flexibility
+Uses a medium model with balanced accuracy and speed.
 
-The application supports multiple workflows:
+Best
 
-- Video → Russian subtitles → translated subtitles
-- Existing Russian subtitles → translation
-- Batch processing for multiple files
+Uses stricter recognition settings for better subtitle quality. This mode is slower but recommended when accuracy is more important than speed.
 
----
+### Translation Improvements
 
-## Notes
+RusTrans includes additional text-processing layers to improve subtitle quality:
 
-- No external APIs are used
-- No user data is collected or stored
-- Designed for local, private usage scenarios
+glossary for names and terms
+idiom dictionary for known Russian expressions
+post-processing for translated subtitles
+suspicious phrase detection for future manual improvements
 
----
+This helps reduce overly literal translations and makes the system easier to improve over time.
 
-## Author
 
-Developed as a personal project focused on combining speech recognition, translation, and desktop UI development.
+### Local AI Review
+
+The project can be extended with a local AI reviewer using Ollama. This allows translation refinement without using external cloud APIs.
+
+Kodi / Raspberry Pi Workflow
+
+Generated .srt files can be used with Kodi by placing the subtitle file next to the media file.
+
+This makes the application suitable for a local home media setup using:
+
+Kodi
+Raspberry Pi
+local network storage
+Tech Stack
+Python
+CustomTkinter
+faster-whisper
+Argos Translate
+ffmpeg
+srt
+Ollama support
+PyInstaller
+
+### Installation
+
+pip install -r requirements.txt
+Make sure ffmpeg is installed and available in PATH.
+
+### Run
+
+python gui.py
+
+
