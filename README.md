@@ -68,15 +68,15 @@ folder with multiple media files
 → batch subtitle generation
 
 ### Quality Modes
-Fast
+- Fast
 
 Uses a smaller speech recognition model for faster processing.
 
-Balanced
+- Balanced
 
 Uses a medium model with balanced accuracy and speed.
 
-Best
+- Best
 
 Uses stricter recognition settings for better subtitle quality.
 This mode is slower but recommended when accuracy is more important than speed.
@@ -85,10 +85,10 @@ This mode is slower but recommended when accuracy is more important than speed.
 
 RusTrans includes additional text-processing layers to improve subtitle quality:
 
-glossary for names and terms
-idiom dictionary for known Russian expressions
-post-processing for translated subtitles
-suspicious phrase detection for future manual improvements
+- glossary for names and terms
+- idiom dictionary for known Russian expressions
+- post-processing for translated subtitles
+- suspicious phrase detection for future manual improvements
 
 This helps reduce overly literal translations and makes the system easier to improve over time.
 
@@ -103,20 +103,20 @@ Generated .srt files can be used with Kodi by placing the subtitle file next to 
 
 This makes the application suitable for a local home media setup using:
 
-Kodi
-Raspberry Pi
-local network storage
+- Kodi
+- Raspberry Pi
+- local network storage
 
 
 ### Tech Stack
-Python
-CustomTkinter
-faster-whisper
-Argos Translate
-ffmpeg
-srt
-Ollama support
-PyInstaller
+- Python
+- CustomTkinter
+- faster-whisper
+- Argos Translate
+- ffmpeg
+- srt
+- Ollama support
+- PyInstaller
 
 
 ### Installation
