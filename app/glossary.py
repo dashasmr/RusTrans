@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 
-# Здесь будут имена, клички, названия и термины,
-# которые не нужно переводить "как попало".
+# Names, nicknames, terms, and other content
+# that should not be translated arbitrarily.
 #
-# Формат:
-# "исходный_текст": {
-#     "en": "как должно быть по-английски",
-#     "fi": "как должно быть по-фински",
+# Format:
+# "source_text": {
+#     "en": "how it should be in English",
+#     "fi": "how it should be in Finnish",
 # }
 
 GLOSSARY: dict[str, dict[str, str]] = {

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 
-# Словарь идиом и разговорных выражений.
-# Здесь храним смысловой перевод под нужный язык.
+# Dictionary of idioms and colloquial expressions.
+# Here we store contextual translations for each target language.
 #
-# Формат:
-# "исходная_фраза": {
+# Format:
+# "source_phrase": {
 #     "en": "natural English",
 #     "fi": "luonteva suomi",
 # }

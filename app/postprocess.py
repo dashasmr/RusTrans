@@ -19,10 +19,10 @@ def postprocess_english(text: str) -> str:
     for source, target in replacements.items():
         text = text.replace(source, target)
 
-    # Убираем двойные пробелы
+    # Remove double spaces
     text = re.sub(r"\s+", " ", text)
 
-    # Чуть нормализуем пунктуацию
+    # Slightly normalize punctuation
     text = re.sub(r"\s+([,.!?:;])", r"\1", text)
 
     return text.strip()

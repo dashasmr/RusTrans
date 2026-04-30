@@ -8,7 +8,6 @@ All subtitle processing logic is delegated to the app.pipeline module.
 from __future__ import annotations
 
 import os
-import sys
 import threading
 from pathlib import Path
 import tkinter.messagebox as messagebox
@@ -39,29 +38,30 @@ MODE_LABELS = {
     "Russian SRT → subtitles": "srt",
 }
 
+QUALITY_LABELS = {
+    "Fast": "fast",
+    "Balanced": "balanced",
+    "Best": "best",
+}
+
 
 class RusTransApp:
     """
     Main desktop application window for RusTrans.
-
-    The UI allows users to select a video, SRT file, or a season folder,
-    then generate translated subtitles in Finnish or English.
     """
 
     def __init__(self, root: ctk.CTk) -> None:
-        """
-        Initialize application state and build the UI.
-        """
         self.root = root
         self.root.title("RusTrans")
-        self.root.geometry("940x660")
-        self.root.minsize(820, 600)
+        self.root.geometry("980x700")
+        self.root.minsize(860, 640)
 
         self.selected_path: Path | None = None
 
         self.path_var = ctk.StringVar()
         self.mode_var = ctk.StringVar(value="Auto")
         self.lang_var = ctk.StringVar(value="Finnish")
+        self.quality_var = ctk.StringVar(value="Balanced")
         self.status_var = ctk.StringVar(value="Ready")
 
         self._build_ui()
@@ -188,24 +188,33 @@ class RusTransApp:
         )
         self.lang_menu.pack(anchor="w", padx=14, pady=(0, 14))
 
-        info_card = ctk.CTkFrame(options, corner_radius=16)
-        info_card.grid(row=0, column=2, sticky="nsew", padx=(7, 14), pady=14)
+        quality_card = ctk.CTkFrame(options, corner_radius=16)
+        quality_card.grid(row=0, column=2, sticky="nsew", padx=(7, 14), pady=14)
 
-        info_title = ctk.CTkLabel(
-            info_card,
-            text="Output",
+        quality_title = ctk.CTkLabel(
+            quality_card,
+            text="Quality",
             font=ctk.CTkFont(size=17, weight="bold"),
         )
-        info_title.pack(anchor="w", padx=14, pady=(14, 8))
+        quality_title.pack(anchor="w", padx=14, pady=(14, 8))
 
-        info_text = ctk.CTkLabel(
-            info_card,
-            text="Creates .ru.srt and .fi/.en.srt next to the source file.",
-            wraplength=240,
+        self.quality_menu = ctk.CTkOptionMenu(
+            quality_card,
+            values=list(QUALITY_LABELS.keys()),
+            variable=self.quality_var,
+            width=180,
+            height=36,
+        )
+        self.quality_menu.pack(anchor="w", padx=14, pady=(0, 6))
+
+        quality_help = ctk.CTkLabel(
+            quality_card,
+            text="Best is slower but more accurate.",
+            wraplength=220,
             justify="left",
             text_color="#AAB2C0",
         )
-        info_text.pack(anchor="w", padx=14, pady=(0, 14))
+        quality_help.pack(anchor="w", padx=14, pady=(0, 14))
 
         actions = ctk.CTkFrame(main, corner_radius=18)
         actions.grid(row=3, column=0, sticky="ew", padx=22, pady=(0, 14))
@@ -283,13 +292,7 @@ class RusTransApp:
         self.log("RusTrans is ready.")
 
     def select_file(self) -> None:
-        """
-        Open a file picker and store the selected input file.
-
-        Supported inputs:
-        - video files
-        - Russian SRT subtitle files
-        """
+        """Open a file picker and store the selected input file."""
         file_path = filedialog.askopenfilename(
             title="Select video or Russian SRT",
             filetypes=[
@@ -306,12 +309,8 @@ class RusTransApp:
         self.log(f"Selected file: {self.selected_path}")
 
     def select_folder(self) -> None:
-        """
-        Open a folder picker and store the selected season folder.
-
-        Folder mode is used for batch processing multiple video files.
-        """
-        folder_path = filedialog.askdirectory(title="Select season folder")
+        """Open a folder picker and store the selected season folder."""
+        folder_path = filedialog.askdirectory(title="Select folder")
 
         if not folder_path:
             return
@@ -321,27 +320,17 @@ class RusTransApp:
         self.log(f"Selected folder: {self.selected_path}")
 
     def clear_log(self) -> None:
-        """
-        Clear all messages from the log panel.
-        """
+        """Clear all messages from the log panel."""
         self.log_text.delete("1.0", "end")
 
     def log(self, message: str, level: str = "INFO") -> None:
-        """
-        Append a log message to the UI log panel.
-
-        Args:
-            message: Message to display.
-            level: Log level label, for example INFO, WARNING, ERROR.
-        """
+        """Append a log message to the UI log panel."""
         self.log_text.insert("end", f"[{level}] {message}\n")
         self.log_text.see("end")
         self.root.update_idletasks()
 
     def set_status(self, status: str) -> None:
-        """
-        Update the status badge text and color.
-        """
+        """Update the status badge text and color."""
         self.status_var.set(status)
 
         if status == "Ready":
@@ -354,9 +343,7 @@ class RusTransApp:
             self.status_badge.configure(fg_color="#B83232")
 
     def open_output_folder(self) -> None:
-        """
-        Open the folder where generated subtitle files are stored.
-        """
+        """Open the folder where generated subtitle files are stored."""
         if not self.selected_path:
             self.log("No file or folder selected.", level="WARNING")
             return
@@ -369,16 +356,8 @@ class RusTransApp:
             self.log(f"Cannot open output folder: {error}", level="ERROR")
 
     def open_candidates_file(self) -> None:
-        """
-        Open the JSON file containing suspicious translation candidates.
-        """
-        # Use same path resolution as suspicious_detector
-        if getattr(sys, 'frozen', False):
-            base_dir = Path(sys._MEIPASS)
-        else:
-            base_dir = Path(__file__).parent
-        
-        path = base_dir / "data" / "idiom_candidates.json"
+        """Open the JSON file containing suspicious translation candidates."""
+        path = Path("data/idiom_candidates.json")
 
         if not path.exists():
             self.log("Candidates file not found yet.", level="WARNING")
@@ -390,12 +369,7 @@ class RusTransApp:
             self.log(f"Cannot open candidates file: {error}", level="ERROR")
 
     def start_processing(self) -> None:
-        """
-        Validate input and start processing in a background thread.
-
-        A worker thread is used to keep the GUI responsive while
-        transcription and translation are running.
-        """
+        """Validate input and start processing in a background thread."""
         path_text = self.path_var.get().strip()
 
         if not path_text:
@@ -421,36 +395,35 @@ class RusTransApp:
         worker.start()
 
     def _run_processing(self, input_path: Path) -> None:
-        """
-        Run selected processing pipeline.
-
-        The method supports:
-        - single video file
-        - single Russian SRT file
-        - season folder with multiple video files
-        """
+        """Run selected processing pipeline."""
         try:
             target_lang = LANGUAGE_LABELS[self.lang_var.get()]
             mode = MODE_LABELS[self.mode_var.get()]
+            quality = QUALITY_LABELS[self.quality_var.get()]
 
             self.log(f"Target language: {target_lang}")
             self.log(f"Processing mode: {mode}")
+            self.log(f"Quality: {quality}")
 
             if input_path.is_dir():
-                self.log("Season folder mode enabled.")
-                process_video_folder(input_path, target_lang=target_lang)
+                self.log("Folder mode enabled.")
+                process_video_folder(
+                    input_path,
+                    target_lang=target_lang,
+                    quality=quality,
+                )
 
             elif mode == "auto":
                 if input_path.suffix.lower() == ".srt":
                     self._process_srt(input_path, target_lang)
                 else:
-                    self._process_video(input_path, target_lang)
+                    self._process_video(input_path, target_lang, quality)
 
             elif mode == "srt":
                 self._process_srt(input_path, target_lang)
 
             elif mode == "video":
-                self._process_video(input_path, target_lang)
+                self._process_video(input_path, target_lang, quality)
 
             self.log("Processing completed successfully.")
             self.set_status("Done")
@@ -465,9 +438,7 @@ class RusTransApp:
             self.start_button.configure(state="normal")
 
     def _process_srt(self, input_path: Path, target_lang: str) -> None:
-        """
-        Translate an existing Russian SRT file into the selected target language.
-        """
+        """Translate an existing Russian SRT file."""
         output_path = build_output_srt_path(input_path, target_lang)
 
         self.log(f"Input SRT: {input_path}")
@@ -475,21 +446,20 @@ class RusTransApp:
 
         translate_srt(input_path, output_path, target_lang=target_lang)
 
-    def _process_video(self, input_path: Path, target_lang: str) -> None:
-        """
-        Generate Russian subtitles from a video and translate them
-        into the selected target language.
-        """
+    def _process_video(self, input_path: Path, target_lang: str, quality: str) -> None:
+        """Generate Russian subtitles from video and translate them."""
         self.log(f"Input video: {input_path}")
         self.log(f"Creating subtitles: ru + {target_lang}")
 
-        video_to_subs(input_path, target_lang=target_lang)
+        video_to_subs(
+            input_path,
+            target_lang=target_lang,
+            quality=quality,
+        )
 
 
 def main() -> None:
-    """
-    Application entry point.
-    """
+    """Application entry point."""
     root = ctk.CTk()
     RusTransApp(root)
     root.mainloop()

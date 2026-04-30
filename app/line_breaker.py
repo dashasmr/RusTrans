@@ -37,13 +37,13 @@ def format_subtitle_lines(
         break_on_hyphens=False,
     )
 
-    # Если строк слишком много, схлопываем хвост в последнюю строку
+    # If there are too many lines, collapse the tail into the last line
     if len(wrapped_lines) > max_lines:
         head = wrapped_lines[: max_lines - 1]
         tail = " ".join(wrapped_lines[max_lines - 1 :])
         wrapped_lines = head + [tail]
 
-    # Центрируем каждую строку для лучшего вида
+    # Center each line for better appearance
     centered_lines = []
     for line in wrapped_lines:
         centered_lines.append(line.center(max_line_length))

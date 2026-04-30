@@ -99,14 +99,14 @@ def translate_text(text: str, target_lang: str = "fi", source_lang: str = "ru") 
         return ""
 
     if source_lang == "ru" and target_lang == "fi":
-        # Перевод через английский: ru -> en -> fi
+        # Translation via English: ru -> en -> fi
         try:
             translation_ru_en = _get_translation("ru", "en")
             text_en = translation_ru_en.translate(text)
             translation_en_fi = _get_translation("en", "fi")
             translated = translation_en_fi.translate(text_en)
         except RuntimeError:
-            # Если нет пары, попробовать прямой перевод
+            # If no pair available, try direct translation
             translation = _get_translation(source_lang, target_lang)
             translated = translation.translate(text)
     else:

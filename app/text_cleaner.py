@@ -25,22 +25,22 @@ def clean_subtitle_text(text: str) -> str:
     if not text:
         return ""
 
-    # Нормализуем переводы строк
+    # Normalize line breaks
     text = text.replace("\r\n", "\n").replace("\r", "\n")
 
-    # Убираем пробелы по краям каждой строки
+    # Remove leading/trailing spaces from each line
     lines = [line.strip() for line in text.split("\n")]
 
-    # Убираем полностью пустые строки
+    # Remove completely empty lines
     lines = [line for line in lines if line]
 
-    # Собираем обратно в одну строку, пока без сохранения старых переносов
+    # Join back into a single line, without preserving old line breaks yet
     text = " ".join(lines)
 
-    # Сжимаем повторяющиеся пробелы
+    # Collapse repeated spaces
     text = re.sub(r"\s+", " ", text)
 
-    # Убираем пробел перед знаками препинания
+    # Remove space before punctuation
     text = re.sub(r"\s+([,.!?:;])", r"\1", text)
 
     return text.strip()

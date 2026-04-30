@@ -4,23 +4,30 @@ from app.glossary import GLOSSARY
 from app.idioms import IDIOMS
 
 
-def apply_idioms(text: str, target_lang: str) -> str:
+def normalize_text(text: str) -> str:
     """
-    Заменяет известные идиомы на смысловой вариант под нужный язык.
+    Normalize text for dictionary lookup.
     """
-    result = text
+    return text.strip().lower().replace("ё", "е")
+
+
+def get_direct_idiom_translation(text: str, target_lang: str) -> str | None:
+    """
+    Return a direct idiom translation if the whole subtitle matches
+    a known idiom or colloquial expression.
+    """
+    normalized = normalize_text(text)
 
     for source_text, translations in IDIOMS.items():
-        replacement = translations.get(target_lang)
-        if replacement:
-            result = result.replace(source_text, replacement)
+        if normalize_text(source_text) == normalized:
+            return translations.get(target_lang)
 
-    return result
+    return None
 
 
 def apply_glossary(text: str, target_lang: str) -> str:
     """
-    Подменяет известные имена и термины на нужный вариант.
+    Preserve or normalize known names and terms before translation.
     """
     result = text
 
@@ -34,12 +41,10 @@ def apply_glossary(text: str, target_lang: str) -> str:
 
 def preprocess_source_text(text: str, target_lang: str) -> str:
     """
-    Подготовка текста до перевода.
+    Prepare Russian source text before machine translation.
 
-    Сейчас:
-    1. Идиомы
-    2. Имена и термины
+    Important:
+    Do not replace Russian idioms with Finnish/English here.
+    Direct idiom translations are handled separately in the pipeline.
     """
-    text = apply_idioms(text, target_lang)
-    text = apply_glossary(text, target_lang)
-    return text
+    return apply_glossary(text, target_lang)

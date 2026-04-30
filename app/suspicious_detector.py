@@ -34,7 +34,7 @@ def looks_suspicious(source_text: str, translated_text: str, target_lang: str) -
     source_lower = source_text.strip().lower()
     translated_lower = translated_text.strip().lower()
 
-    # Очень короткие разговорные фразы часто ломаются
+    # Very short conversational phrases often break
     short_phrases = {
         "вот такие пироги",
         "да ну",
@@ -47,19 +47,19 @@ def looks_suspicious(source_text: str, translated_text: str, target_lang: str) -
     if source_lower in short_phrases:
         reasons.append("possible_idiom_or_colloquial_phrase")
 
-    # Если перевод слишком длинный для короткой реплики
+    # If translation is too long for a short line
     if len(source_text.split()) <= 3 and len(translated_text.split()) >= 6:
         reasons.append("short_source_but_long_translation")
 
-    # Если перевод вообще пустой
+    # If translation is completely empty
     if not translated_text.strip():
         reasons.append("empty_translation")
 
-    # Если перевод совпал с оригиналом, но это не имя
+    # If translation matches original, but it's not a name
     if source_lower == translated_lower and len(source_text.split()) > 1:
         reasons.append("translation_same_as_source")
 
-    # Очень короткие эмоциональные реплики
+    # Very short emotional lines
     emotional_short = {
         "ага",
         "угу",
@@ -121,7 +121,7 @@ def add_suspicious_candidate(
         "reasons": reasons,
     }
 
-    # Не добавляем точные дубликаты
+    # Don't add exact duplicates
     for existing in candidates:
         if (
             existing.get("source_text") == item["source_text"]

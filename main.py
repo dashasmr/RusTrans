@@ -315,7 +315,7 @@ def process_video_file(input_path: Path) -> int:
     
     print(f"\nГотово: черновой SRT сохранён -> {output_path}")
 
-    # --- НОВОЕ: переводим в финский ---
+    # --- NEW: translate to Finnish ---
     print("\nПереводим в финский...")
 
     try:
